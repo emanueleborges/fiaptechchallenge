@@ -1,1 +1,0 @@
-from src.services import crawl_embrapa
