@@ -1,3 +1,4 @@
+# Moved to the config folder
 from datetime import timedelta
 
 class Config:
