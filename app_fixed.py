@@ -111,19 +111,18 @@ def get_embrapa_data():
     # Primeiro, processar os produtos pai (exceto "Dados da Vitivinicultura" e "DOWNLOAD")
     produtos_pai = df_data[(df_data['is_parent']) & 
                           (~df_data['Produto'].isin(['Dados da Vitivinicultura', 'DOWNLOAD']))]
-      # Dicionário para mapear produtos pai por nome para adicionar filhos depois
-    produtos_dict = {}
-    resultado = {}
     
+    # Dicionário para mapear produtos pai por nome para adicionar filhos depois
+    produtos_dict = {}
     for _, row in produtos_pai.iterrows():
-        nome_produto = row['Produto']
         produto_pai = {
-            "produto": nome_produto,
+            "item": row['Produto'],
+            "produto": row['Produto'],
             "quantidade": row['Quantidade (L.)'],
-            "subitem": []
+            "filhos": []
         }
-        resultado[f"item {len(resultado) + 1}"] = produto_pai
-        produtos_dict[nome_produto] = produto_pai
+        produtos.append(produto_pai)
+        produtos_dict[row['Produto']] = produto_pai
     
     # Em seguida, processar os produtos filhos
     produtos_filhos = df_data[~df_data['is_parent']]
@@ -131,13 +130,17 @@ def get_embrapa_data():
         categoria_pai = row['Categoria_Pai']
         # Verificar se o pai está no dicionário
         if categoria_pai in produtos_dict:
-            produtos_dict[categoria_pai]['subitem'].append({
+            produtos_dict[categoria_pai]['filhos'].append({
+                "subitem": row['Produto'],
                 "produto": row['Produto'],
                 "quantidade": row['Quantidade (L.)']
             })
     
-    # Adicionar o Total
-    resultado["Total"] = int(total)
+    # Adicionar o Total como um objeto à lista de produtos
+    produtos.append({
+        "produto": "Total",
+        "quantidade": int(total)
+    })
     
     # Função para converter tipos NumPy para tipos nativos Python
     def convert_numpy_types(obj):
@@ -148,11 +151,12 @@ def get_embrapa_data():
         elif isinstance(obj, list):
             return [convert_numpy_types(i) for i in obj]
         return obj
-      # Converter todos os valores NumPy antes da serialização
-    resultado = convert_numpy_types(resultado)
+    
+    # Converter todos os valores NumPy antes da serialização
+    produtos = convert_numpy_types(produtos)
     
     # Converter para JSON formatado
-    json_output = json.dumps(resultado, indent=4, ensure_ascii=False)
+    json_output = json.dumps(produtos, indent=4, ensure_ascii=False)
     return Response(json_output, mimetype='application/json')
 
 if __name__ == '__main__':
