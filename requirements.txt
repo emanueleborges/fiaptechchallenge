@@ -1,0 +1,7 @@
+Flask
+Flask-JWT-Extended
+Flask-RESTX
+httpx
+beautifulsoup4
+requests
+pandas
