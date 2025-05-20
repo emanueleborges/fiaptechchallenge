@@ -11,6 +11,13 @@ class Configuracao:
     # Ano padrão para consulta
     ANO_PADRAO = 2023
     
+    # Opções de relatório
+    OPCAO_PRODUCAO = "opt_02"
+    OPCAO_PROCESSAMENTO = "opt_03"
+    
+    # Subopções de processamento
+    SUBOPCAO_PROCESSAMENTO_PADRAO = "subopt_03"
+    
     # Produtos que devem ser ignorados no processamento
     PRODUTOS_IGNORADOS = ["Dados da Vitivinicultura", "DOWNLOAD"]
     

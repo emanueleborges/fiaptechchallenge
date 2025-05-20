@@ -56,7 +56,7 @@ def obter_dados_processamento():
     ano = request.args.get('ano', default=Configuracao.ANO_PADRAO, type=int)
     formato = request.args.get('formato', default='padrao', type=str)
     opcao = request.args.get('opcao', default='opt_03', type=str)
-    subopcao = request.args.get('subopcao', default=None, type=str)
+    subopcao = request.args.get('subopcao', default='subopt_03', type=str)
     
     servico = ServicoProcessamento()
     controlador = ControladorProcessamento()
