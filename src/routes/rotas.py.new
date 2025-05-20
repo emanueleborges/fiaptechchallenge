@@ -40,12 +40,11 @@ def obter_dados_producao():
         Response: Objeto de resposta HTTP com dados em formato JSON
     """
     ano = request.args.get('ano', default=Configuracao.ANO_PADRAO, type=int)
-    opcao = request.args.get('opcao', default=Configuracao.OPCAO_PRODUCAO, type=str)
     
     servico = ServicoEmbrapa()
     controlador = ControladorProducao()
     
-    df_dados = servico.coletarDados(ano, opcao=opcao)
+    df_dados = servico.coletarDados(ano)
     resultado = controlador.formatarDados(df_dados)
     
     json_output = json.dumps(resultado, indent=4, ensure_ascii=False)

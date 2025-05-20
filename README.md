@@ -198,6 +198,41 @@ GET /embrapa_processamento?ano=2022&formato=hierarquico
 }
 ```
 
+### Obter Dados de Comercialização
+
+**Endpoint:** `/embrapa_comercializacao`
+
+**Method:** GET
+
+**Query Parameters:**
+- `ano` (optional): Ano para o qual se deseja obter os dados (padrão: 2023)
+
+**Example:**
+```
+GET /embrapa_comercializacao?ano=2022
+```
+
+**Response:**
+```json
+{
+  "comercializacao": {
+    "produto": "Vinhos de Mesa",
+    "quantidade": 150000000,
+    "mercados": [
+      {
+        "mercado": "Nacional",
+        "quantidade": 120000000
+      },
+      {
+        "mercado": "Internacional",
+        "quantidade": 30000000
+      }
+    ]
+  },
+  "total": 150000000
+}
+```
+
 ### Health Check
 
 **Endpoint:** `/health`

@@ -14,17 +14,23 @@ class ServicoEmbrapa:
     def __init__(self):
         self.urlBase = Configuracao.URL_BASE_EMBRAPA
 
-    def coletarDados(self, ano: int) -> pd.DataFrame:
+    def coletarDados(self, ano: int, opcao: str = None) -> pd.DataFrame:
         """
         Faz o web scraping dos dados da Embrapa para o ano específicado
         
         Args:
             ano (int): O ano para o qual se deseja obter os dados
+            opcao (str, optional): Opção do relatório. Default para opt_02 (produção)
             
         Returns:
             pd.DataFrame: DataFrame com os dados de produção de vinho
         """
-        url = f"{self.urlBase}?ano={ano}&opcao=opt_02"
+        url = f"{self.urlBase}?ano={ano}"
+        # Se não for passada a opção, usa o valor padrão para produção
+        if opcao is None:
+            opcao = Configuracao.OPCAO_PRODUCAO
+        
+        url += f"&opcao={opcao}"
         resposta = requests.get(url)
         soup = BeautifulSoup(resposta.content, 'html.parser')
         dados = []
