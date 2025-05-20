@@ -14,6 +14,7 @@ class Configuracao:
     # Opções de relatório
     OPCAO_PRODUCAO = "opt_02"
     OPCAO_PROCESSAMENTO = "opt_03"
+    OPCAO_COMERCIALIZACAO = "opt_04"
     
     # Subopções de processamento
     SUBOPCAO_PROCESSAMENTO_PADRAO = "subopt_03"
