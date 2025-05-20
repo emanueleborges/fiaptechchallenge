@@ -13,3 +13,9 @@ class Configuracao:
     
     # Produtos que devem ser ignorados no processamento
     PRODUTOS_IGNORADOS = ["Dados da Vitivinicultura", "DOWNLOAD"]
+    
+    # Processos que devem ser ignorados no processamento
+    PROCESSOS_IGNORADOS = ["Dados da Vitivinicultura", "DOWNLOAD"]
+    
+    # Formatos de resposta disponíveis
+    FORMATOS_RESPOSTA = ["padrao", "hierarquico"]
