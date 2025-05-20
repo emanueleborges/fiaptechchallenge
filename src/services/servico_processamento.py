@@ -1,0 +1,110 @@
+"""
+Serviço responsável por fazer o web scraping dos dados de processamento da Embrapa
+"""
+import requests
+from bs4 import BeautifulSoup
+import pandas as pd
+import re
+from typing import List, Dict, Any, Tuple
+
+from src.models.processamento import ItemProcessamento
+from src.config.configuracao import Configuracao
+
+class ServicoProcessamento:
+    def __init__(self):
+        self.urlBase = Configuracao.URL_BASE_EMBRAPA
+
+    def coletarDadosProcessamento(self, ano: int, opcao: str = 'opt_03', subopcao: str = None) -> pd.DataFrame:
+        """
+        Faz o web scraping dos dados de processamento da Embrapa para o ano específicado
+        
+        Args:
+            ano (int): O ano para o qual se deseja obter os dados
+            opcao (str): Opção do relatório (ex: 'opt_03')
+            subopcao (str): Subopção do relatório (ex: 'subopt_01')
+            
+        Returns:
+            pd.DataFrame: DataFrame com os dados de processamento de vinho
+        """
+        url = f"{self.urlBase}?ano={ano}&opcao={opcao}"
+        if subopcao:
+            url += f"&subopcao={subopcao}"
+        resposta = requests.get(url)
+        soup = BeautifulSoup(resposta.content, 'html.parser')
+        dados = []
+        valorTotal = 0
+        
+        # Variável para armazenar categoria pai atual
+        categoriaPaiAtual = None
+        
+        # Encontrar a tabela de dados
+        tabelas = soup.find_all('table', class_='tb_base tb_dados')
+        
+        for tabela in tabelas:
+            # Processar as linhas da tabela
+            linhas = tabela.find_all('tr')
+            
+            for linha in linhas:
+                colunas = linha.find_all('td')
+                if len(colunas) >= 2:  # Processamento pode ter mais colunas
+                    # Extrair texto dos campos
+                    processo = colunas[0].text.strip()
+                    texto_volume = colunas[1].text.strip()
+                    
+                    # Tentar extrair o método, se existir
+                    metodo = None
+                    if len(colunas) > 2:
+                        metodo = colunas[2].text.strip() if colunas[2].text.strip() else None
+                    
+                    # Identificar se é um item pai (tb_item) ou filho (tb_subitem)
+                    ehPai = 'tb_item' in colunas[0].get('class', [])
+                      # Ignorar colunas de cabeçalho e produtos específicos ignorados
+                    if processo in ['Processo', 'Total'] or processo in Configuracao.PROCESSOS_IGNORADOS:
+                        if processo == 'Total':
+                            try:
+                                valorTotal = int(re.sub(r'[^\d]', '', texto_volume))
+                            except ValueError:
+                                valorTotal = 0
+                        continue
+                    
+                    # Converter quantidade para inteiro
+                    try:
+                        volume = int(re.sub(r'[^\d]', '', texto_volume)) if texto_volume.strip() != '-' else 0
+                    except ValueError:
+                        volume = 0
+                    
+                    # Se for um item pai, atualizar a categoria pai atual
+                    if ehPai:
+                        categoriaPaiAtual = processo
+                        item = ItemProcessamento(
+                            processo=processo,
+                            volume=volume,
+                            metodo=metodo,
+                            categoriaPai=None,
+                            ehPai=True
+                        )
+                    else:
+                        # É um item filho
+                        item = ItemProcessamento(
+                            processo=processo,
+                            volume=volume,
+                            metodo=metodo,
+                            categoriaPai=categoriaPaiAtual,
+                            ehPai=False
+                        )
+                    
+                    dados.append(item)
+        
+        # Adicionar o valor total como um item especial
+        dados.append(ItemProcessamento(
+            processo='Total',
+            volume=valorTotal,
+            metodo=None,
+            categoriaPai=None,
+            ehPai=False
+        ))
+        
+        # Converter para DataFrame
+        df = pd.DataFrame([vars(item) for item in dados])
+        
+        return df

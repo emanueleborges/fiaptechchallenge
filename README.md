@@ -1,12 +1,14 @@
 # Embrapa Data Crawler API
 
-Uma API baseada em Flask para extrair e disponibilizar dados de produção de vinhos do site da Embrapa.
+Uma API baseada em Flask para extrair e disponibilizar dados de produção e processamento de vinhos do site da Embrapa.
 
 ## Funcionalidades
 
 - Web crawler para dados de produção de vinhos da Embrapa
+- Web crawler para dados de processamento de vinhos da Embrapa
 - API RESTful com respostas em formato JSON
 - Filtragem de dados por ano
+- Diferentes formatos de resposta (padrão e hierárquico para processamento)
 - Tratamento de erros e logging
 - Suporte a Docker para fácil implantação
 - Testes unitários
@@ -98,14 +100,14 @@ mypy app.py
 
 ## Uso da API
 
-### Get Embrapa Data
+### Obter Dados de Produção
 
 **Endpoint:** `/embrapa_data`
 
 **Method:** GET
 
 **Query Parameters:**
-- `ano` (optional): Year for which to retrieve data (default: 2023)
+- `ano` (optional): Ano para o qual se deseja obter os dados (padrão: 2023)
 
 **Example:**
 ```
@@ -114,16 +116,86 @@ GET /embrapa_data?ano=2022
 
 **Response:**
 ```json
-[
-    {
-        "Produto": "Vinho de Mesa",
-        "Quantidade (L.)": 123456789
+{
+  "item 1": {
+    "produto": "Vinhos de Mesa",
+    "quantidade": 220249261,
+    "subitem": [
+      {
+        "produto": "Tinto",
+        "quantidade": 190099917
+      },
+      {
+        "produto": "Branco",
+        "quantidade": 27918722
+      },
+      {
+        "produto": "Rosado",
+        "quantidade": 2230622
+      }
+    ]
+  },
+  "item 2": {
+    "produto": "Outros derivados",
+    "quantidade": 7333215,
+    "subitem": []
+  },
+  "total": 227582476
+}
+```
+
+### Obter Dados de Processamento
+
+**Endpoint:** `/embrapa_processamento`
+
+**Method:** GET
+
+**Query Parameters:**
+- `ano` (optional): Ano para o qual se deseja obter os dados (padrão: 2023)
+- `formato` (optional): Formato da resposta, pode ser "padrao" ou "hierarquico" (padrão: "padrao")
+
+**Example:**
+```
+GET /embrapa_processamento?ano=2022&formato=hierarquico
+```
+
+**Response (formato hierárquico):**
+```json
+{
+  "processos": {
+    "Vinificação em Tinto": {
+      "volume": 150000000,
+      "subprocessos": [
+        {
+          "processo": "Tradicional",
+          "volume": 120000000,
+          "metodo": "Clássico"
+        },
+        {
+          "processo": "Maceração Carbônica",
+          "volume": 30000000,
+          "metodo": "Especial"
+        }
+      ]
     },
-    {
-        "Produto": "Espumante",
-        "Quantidade (L.)": 98765432
+    "Vinificação em Branco": {
+      "volume": 50000000,
+      "subprocessos": [
+        {
+          "processo": "Tradicional",
+          "volume": 45000000,
+          "metodo": "Padrão"
+        },
+        {
+          "processo": "Com Maceração Pelicular",
+          "volume": 5000000,
+          "metodo": "Especial"
+        }
+      ]
     }
-]
+  },
+  "totalGeral": 200000000
+}
 ```
 
 ### Health Check
@@ -135,8 +207,8 @@ GET /embrapa_data?ano=2022
 **Response:**
 ```json
 {
-    "status": "healthy",
-    "service": "embrapa-crawler"
+  "status": "online",
+  "message": "API de dados da Embrapa está funcionando corretamente"
 }
 ```
 
@@ -146,7 +218,14 @@ GET /embrapa_data?ano=2022
 
 Run tests with pytest:
 ```bash
+# Executar todos os testes
 pytest
+
+# Executar apenas os testes de produção
+pytest test_app.py
+
+# Executar apenas os testes de processamento
+pytest test_processamento.py
 ```
 
 ### Code Formatting
@@ -163,6 +242,42 @@ Check your code with Flake8:
 flake8
 ```
 
+## Estrutura do Projeto
+
+```
+.
+├── app.py                      # Ponto de entrada da aplicação
+├── Dockerfile                  # Configuração para criação da imagem Docker
+├── mypy.ini                    # Configuração para tipagem estática
+├── README.md                   # Documentação do projeto
+├── requirements.txt            # Dependências do projeto
+├── run.sh                      # Script para execução em produção
+├── test_app.py                 # Testes para a aplicação
+├── test_processamento.py       # Testes para o processamento
+└── src/                        # Código fonte da aplicação
+    ├── __init__.py             # Inicializador do pacote
+    ├── config/                 # Configurações da aplicação
+    │   ├── __init__.py
+    │   └── configuracao.py     # Variáveis de configuração
+    ├── controllers/            # Controladores da aplicação
+    │   ├── __init__.py
+    │   ├── controlador_producao.py   # Controlador para dados de produção
+    │   └── controlador_processamento.py # Controlador para dados de processamento
+    ├── models/                 # Modelos de dados
+    │   ├── __init__.py
+    │   ├── producao.py         # Modelo para dados de produção
+    │   └── processamento.py    # Modelo para dados de processamento
+    ├── routes/                 # Rotas da API
+    │   ├── __init__.py
+    │   └── rotas.py            # Definição de endpoints
+    ├── services/               # Serviços de negócio
+    │   ├── __init__.py
+    │   ├── servico_embrapa.py  # Serviço para obtenção de dados de produção
+    │   └── servico_processamento.py # Serviço para obtenção de dados de processamento
+    └── utils/                  # Utilitários
+        └── __init__.py
+```
+
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
