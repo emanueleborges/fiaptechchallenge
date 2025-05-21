@@ -7,9 +7,13 @@ import json
 from src.services.servico_embrapa import ServicoEmbrapa
 from src.services.servico_processamento import ServicoProcessamento
 from src.services.servico_comercializacao import ServicoComercializacao
+from src.services.servico_importacao import ServicoImportacao
+from src.services.servico_exportacao import ServicoExportacao
 from src.controllers.controlador_producao import ControladorProducao
 from src.controllers.controlador_processamento import ControladorProcessamento
 from src.controllers.controlador_comercializacao import ControladorComercializacao
+from src.controllers.controlador_importacao import ControladorImportacao
+from src.controllers.controlador_exportacao import ControladorExportacao
 from src.config.configuracao import Configuracao
 
 # Constantes
@@ -94,6 +98,58 @@ def obter_dados_comercializacao():
     controlador = ControladorComercializacao()
     
     df_dados = servico.coletarDadosComercializacao(ano, opcao=opcao, subopcao=subopcao)
+    
+    if formato.lower() == 'hierarquico':
+        resultado = controlador.obterDadosHierarquicos(df_dados)
+    else:
+        resultado = controlador.formatarDados(df_dados)
+    
+    json_output = json.dumps(resultado, indent=4, ensure_ascii=False)
+    return Response(json_output, mimetype=MIME_TYPE_JSON)
+
+@api_blueprint.route('/embrapa_importacao', methods=['GET'])
+def obter_dados_importacao():
+    """
+    Endpoint para obter os dados de importação da Embrapa
+    
+    Returns:
+        Response: Objeto de resposta HTTP com dados em formato JSON
+    """
+    ano = request.args.get('ano', default=Configuracao.ANO_PADRAO, type=int)
+    formato = request.args.get('formato', default='padrao', type=str)
+    opcao = request.args.get('opcao', default=Configuracao.OPCAO_IMPORTACAO, type=str)
+    subopcao = request.args.get('subopcao', default=Configuracao.SUBOPCAO_IMPORTACAO_PADRAO, type=str)
+    
+    servico = ServicoImportacao()
+    controlador = ControladorImportacao()
+    
+    df_dados = servico.coletarDadosImportacao(ano, opcao=opcao, subopcao=subopcao)
+    
+    if formato.lower() == 'hierarquico':
+        resultado = controlador.obterDadosHierarquicos(df_dados)
+    else:
+        resultado = controlador.formatarDados(df_dados)
+    
+    json_output = json.dumps(resultado, indent=4, ensure_ascii=False)
+    return Response(json_output, mimetype=MIME_TYPE_JSON)
+
+@api_blueprint.route('/embrapa_exportacao', methods=['GET'])
+def obter_dados_exportacao():
+    """
+    Endpoint para obter os dados de exportação da Embrapa
+    
+    Returns:
+        Response: Objeto de resposta HTTP com dados em formato JSON
+    """
+    ano = request.args.get('ano', default=Configuracao.ANO_PADRAO, type=int)
+    formato = request.args.get('formato', default='padrao', type=str)
+    opcao = request.args.get('opcao', default=Configuracao.OPCAO_EXPORTACAO, type=str)
+    subopcao = request.args.get('subopcao', default=Configuracao.SUBOPCAO_EXPORTACAO_PADRAO, type=str)
+    
+    servico = ServicoExportacao()
+    controlador = ControladorExportacao()
+    
+    df_dados = servico.coletarDadosExportacao(ano, opcao=opcao, subopcao=subopcao)
     
     if formato.lower() == 'hierarquico':
         resultado = controlador.obterDadosHierarquicos(df_dados)
