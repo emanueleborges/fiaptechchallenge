@@ -6,9 +6,12 @@ Uma API baseada em Flask para extrair e disponibilizar dados de produção e pro
 
 - Web crawler para dados de produção de vinhos da Embrapa
 - Web crawler para dados de processamento de vinhos da Embrapa
+- Web crawler para dados de comercialização de vinhos da Embrapa
+- Web crawler para dados de importação de vinhos da Embrapa
+- Web crawler para dados de exportação de vinhos da Embrapa
 - API RESTful com respostas em formato JSON
 - Filtragem de dados por ano
-- Diferentes formatos de resposta (padrão e hierárquico para processamento)
+- Diferentes formatos de resposta (padrão e hierárquico)
 - Tratamento de erros e logging
 - Suporte a Docker para fácil implantação
 - Testes unitários
@@ -230,6 +233,116 @@ GET /embrapa_comercializacao?ano=2022
     ]
   },
   "total": 150000000
+}
+```
+
+### Obter Dados de Importação
+
+**Endpoint:** `/embrapa_importacao`
+
+**Method:** GET
+
+**Query Parameters:**
+- `ano` (optional): Ano para o qual se deseja obter os dados (padrão: 2023)
+- `formato` (optional): Formato da resposta, pode ser "padrao" ou "hierarquico" (padrão: "padrao")
+- `opcao` (optional): Opção de relatório (padrão: "opt_05")
+- `subopcao` (optional): Subopção de relatório (padrão: "subopt_03")
+
+**Example:**
+```
+GET /embrapa_importacao?ano=2022&formato=hierarquico
+```
+
+**Response (formato padrão):**
+```json
+{
+  "importacao 1": {
+    "pais": "Argentina",
+    "quantidade": 8542125,
+    "valor": 12567890.50
+  },
+  "importacao 2": {
+    "pais": "Chile",
+    "quantidade": 5236985,
+    "valor": 9321567.75
+  },
+  "total_quantidade": 13779110,
+  "total_valor": 21889458.25
+}
+```
+
+**Response (formato hierárquico):**
+```json
+{
+  "paises": {
+    "Argentina": {
+      "quantidade": 8542125,
+      "valor": 12567890.50
+    },
+    "Chile": {
+      "quantidade": 5236985,
+      "valor": 9321567.75
+    }
+  },
+  "totalGeral": {
+    "quantidade": 13779110,
+    "valor": 21889458.25
+  }
+}
+```
+
+### Obter Dados de Exportação
+
+**Endpoint:** `/embrapa_exportacao`
+
+**Method:** GET
+
+**Query Parameters:**
+- `ano` (optional): Ano para o qual se deseja obter os dados (padrão: 2023)
+- `formato` (optional): Formato da resposta, pode ser "padrao" ou "hierarquico" (padrão: "padrao")
+- `opcao` (optional): Opção de relatório (padrão: "opt_06")
+- `subopcao` (optional): Subopção de relatório (padrão: "subopt_03")
+
+**Example:**
+```
+GET /embrapa_exportacao?ano=2022&formato=hierarquico
+```
+
+**Response (formato padrão):**
+```json
+{
+  "exportacao 1": {
+    "pais": "Estados Unidos",
+    "quantidade": 3254896,
+    "valor": 7854692.30
+  },
+  "exportacao 2": {
+    "pais": "Reino Unido",
+    "quantidade": 1587452,
+    "valor": 5321478.45
+  },
+  "total_quantidade": 4842348,
+  "total_valor": 13176170.75
+}
+```
+
+**Response (formato hierárquico):**
+```json
+{
+  "paises": {
+    "Estados Unidos": {
+      "quantidade": 3254896,
+      "valor": 7854692.30
+    },
+    "Reino Unido": {
+      "quantidade": 1587452,
+      "valor": 5321478.45
+    }
+  },
+  "totalGeral": {
+    "quantidade": 4842348,
+    "valor": 13176170.75
+  }
 }
 ```
 
