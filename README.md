@@ -10,6 +10,7 @@ Uma API baseada em Flask para extrair e disponibilizar dados de produção e pro
 - Web crawler para dados de importação de vinhos da Embrapa
 - Web crawler para dados de exportação de vinhos da Embrapa
 - API RESTful com respostas em formato JSON
+- Rota unificada para acesso a todos os tipos de dados
 - Filtragem de dados por ano
 - Diferentes formatos de resposta (padrão e hierárquico)
 - Tratamento de erros e logging
@@ -103,9 +104,70 @@ mypy app.py
 
 ## Uso da API
 
-### Obter Dados de Produção
+### Rota Unificada (Recomendada)
 
 **Endpoint:** `/embrapa_data`
+
+**Method:** GET
+
+**Query Parameters:**
+- `ano` (optional): Ano para o qual se deseja obter os dados (padrão: 2023)
+- `formato` (optional): Formato da resposta, pode ser "padrao" ou "hierarquico" (padrão: "padrao"). Formato "hierarquico" disponível para todos os tipos exceto dados de produção (opt_02).
+- `opcao` (required): Opção específica do relatório:
+  - `opt_02`: Dados de produção
+  - `opt_03`: Dados de processamento
+  - `opt_04`: Dados de comercialização
+  - `opt_05`: Dados de importação
+  - `opt_06`: Dados de exportação
+- `subopcao` (optional): Subopção específica do relatório (aplicável para todas as opções exceto `opt_02`)
+
+**Formatos de Resposta:**
+- **padrao**: Retorna os dados em um formato simples e plano, ideal para consumo direto.
+- **hierarquico**: Organiza os dados em estrutura hierárquica, agrupando por categorias (exceto para opt_02, que só suporta formato padrão).
+
+**Examples:**
+
+Para dados de produção:
+```
+GET /embrapa_data?opcao=opt_02&ano=2023
+```
+
+Para dados de processamento em formato hierárquico:
+```
+GET /embrapa_data?opcao=opt_03&ano=2022&formato=hierarquico&subopcao=subopt_03
+```
+
+Para dados de comercialização:
+```
+GET /embrapa_data?opcao=opt_04&ano=2023&formato=padrao
+```
+
+Para dados de importação:
+```
+GET /embrapa_data?opcao=opt_05&ano=2023&formato=hierarquico&subopcao=subopt_03
+```
+
+Para dados de exportação:
+```
+GET /embrapa_data?opcao=opt_06&ano=2023&formato=hierarquico&subopcao=subopt_03
+```
+
+Para dados de importação com ano específico:
+```
+GET /embrapa_data?tipo=importacao&ano=2022&formato=hierarquico
+```
+
+Para dados de exportação com subopção específica:
+```
+GET /embrapa_data?tipo=exportacao&ano=2022&formato=hierarquico&subopcao=subopt_03
+```
+
+**Response:**
+O formato da resposta dependerá do tipo de dado solicitado e do formato selecionado. A estrutura seguirá o mesmo padrão dos endpoints específicos documentados abaixo.
+
+### Obter Dados de Produção (Compatibilidade com Versão 1)
+
+**Endpoint:** `/embrapa_data` (sem o parâmetro tipo, assume tipo=producao)
 
 **Method:** GET
 
@@ -147,7 +209,9 @@ GET /embrapa_data?ano=2022
 }
 ```
 
-### Obter Dados de Processamento
+### Obter Dados de Processamento (Obsoleto)
+
+**Nota:** Este endpoint está obsoleto. Use a rota unificada `/embrapa_data?tipo=processamento` em seu lugar.
 
 **Endpoint:** `/embrapa_processamento`
 
@@ -201,7 +265,9 @@ GET /embrapa_processamento?ano=2022&formato=hierarquico
 }
 ```
 
-### Obter Dados de Comercialização
+### Obter Dados de Comercialização (Obsoleto)
+
+**Nota:** Este endpoint está obsoleto. Use a rota unificada `/embrapa_data?tipo=comercializacao` em seu lugar.
 
 **Endpoint:** `/embrapa_comercializacao`
 
@@ -236,7 +302,9 @@ GET /embrapa_comercializacao?ano=2022
 }
 ```
 
-### Obter Dados de Importação
+### Obter Dados de Importação (Obsoleto)
+
+**Nota:** Este endpoint está obsoleto. Use a rota unificada `/embrapa_data?tipo=importacao` em seu lugar.
 
 **Endpoint:** `/embrapa_importacao`
 
@@ -291,7 +359,9 @@ GET /embrapa_importacao?ano=2022&formato=hierarquico
 }
 ```
 
-### Obter Dados de Exportação
+### Obter Dados de Exportação (Obsoleto)
+
+**Nota:** Este endpoint está obsoleto. Use a rota unificada `/embrapa_data?tipo=exportacao` em seu lugar.
 
 **Endpoint:** `/embrapa_exportacao`
 

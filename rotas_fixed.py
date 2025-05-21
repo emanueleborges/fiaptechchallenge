@@ -17,12 +17,12 @@ from src.controllers.controlador_exportacao import ControladorExportacao
 from src.config.configuracao import Configuracao
 
 # Constantes
-MIME_TYPE_JSON = 'application/json'
+MIME_TYPE_JSON = "application/json"
 
 # Criar o blueprint da API
-api_blueprint = Blueprint('api', __name__)
+api_blueprint = Blueprint("api", __name__)
 
-@api_blueprint.route('/health', methods=['GET'])
+@api_blueprint.route("/health", methods=["GET"])
 def health_check():
     """
     Endpoint para verificação de saúde da API
@@ -35,40 +35,43 @@ def health_check():
         "message": "API de dados da Embrapa está funcionando corretamente"
     })
 
-@api_blueprint.route('/embrapa_data', methods=['GET'])
+@api_blueprint.route("/embrapa_data", methods=["GET"])
 def obter_dados_embrapa():
     """
     Endpoint unificado para obter os dados da Embrapa
     
     Query Parameters:
         ano: Ano para consulta (padrão: 2023)
-        formato: Formato da resposta (padrão: 'padrao')
+        formato: Formato da resposta (padrão: "padrao")
         opcao: Opção específica do relatório (opt_02 para produção, opt_03 para processamento, opt_04 para comercialização, opt_05 para importação, opt_06 para exportação)
-        subopcao: Subopção específica do relatório (não utilizado para 'opt_02')
+        subopcao: Subopção específica do relatório (não utilizado para "opt_02")
     
     Returns:
         Response: Objeto de resposta HTTP com dados em formato JSON
     """
     # Parâmetros comuns
-    ano = request.args.get('ano', default=Configuracao.ANO_PADRAO, type=int)
-    formato = request.args.get('formato', default='padrao', type=str).lower()    # Obter opção da URL ou usar padrão de produção
-    opcao = request.args.get('opcao', default=Configuracao.OPCAO_PRODUCAO, type=str)
+    ano = request.args.get("ano", default=Configuracao.ANO_PADRAO, type=int)
+    formato = request.args.get("formato", default="padrao", type=str).lower()
+    
+    # Obter opção da URL ou usar padrão de produção
+    opcao = request.args.get("opcao", default=Configuracao.OPCAO_PRODUCAO, type=str)
     
     # Determinar a subopção padrão com base na opção
     subopcao_padrao = None
     if opcao == Configuracao.OPCAO_PROCESSAMENTO:
         subopcao_padrao = Configuracao.SUBOPCAO_PROCESSAMENTO_PADRAO
     elif opcao == Configuracao.OPCAO_IMPORTACAO:
-        subopcao_padrao = Configuracao.SUBOPCAO_IMPORTACAO_PADRAO    
+        subopcao_padrao = Configuracao.SUBOPCAO_IMPORTACAO_PADRAO
     elif opcao == Configuracao.OPCAO_EXPORTACAO:
         subopcao_padrao = Configuracao.SUBOPCAO_EXPORTACAO_PADRAO
     
-    subopcao = request.args.get('subopcao', default=subopcao_padrao, type=str)
+    subopcao = request.args.get("subopcao", default=subopcao_padrao, type=str)
     
     try:
         # Selecionar o serviço e controlador adequados com base na opção
         df_dados = None
         resultado = None
+        
         if opcao == Configuracao.OPCAO_PRODUCAO:
             servico = ServicoEmbrapa()
             controlador = ControladorProducao()
@@ -80,7 +83,7 @@ def obter_dados_embrapa():
             controlador = ControladorProcessamento()
             print(f"Coletando dados de processamento: ano={ano}, opcao={opcao}, subopcao={subopcao}")
             df_dados = servico.coletarDadosProcessamento(ano, opcao=opcao, subopcao=subopcao)
-            print(f"Dados coletados: {len(df_dados) if df_dados is not None else 'None'} registros")
+            print(f"Dados coletados: {len(df_dados) if df_dados is not None else \"None\"} registros")
             
         elif opcao == Configuracao.OPCAO_COMERCIALIZACAO:
             servico = ServicoComercializacao()
@@ -99,18 +102,19 @@ def obter_dados_embrapa():
             
         else:
             return jsonify({
-                "erro": f"Opção '{opcao}' não reconhecida",
+                "erro": f"Opção \"{opcao}\" não reconhecida",
                 "opcoes_validas": [
                     Configuracao.OPCAO_PRODUCAO,
                     Configuracao.OPCAO_PROCESSAMENTO,
                     Configuracao.OPCAO_COMERCIALIZACAO, 
                     Configuracao.OPCAO_IMPORTACAO,
                     Configuracao.OPCAO_EXPORTACAO
-                ]            }), 400
+                ]
+            }), 400
         
         # Processar os dados conforme o formato para todos os tipos exceto produção
         if opcao != Configuracao.OPCAO_PRODUCAO and df_dados is not None:
-            if formato.lower() == 'hierarquico':
+            if formato.lower() == "hierarquico":
                 resultado = controlador.obterDadosHierarquicos(df_dados)
             else:
                 resultado = controlador.formatarDados(df_dados)
@@ -126,3 +130,4 @@ def obter_dados_embrapa():
             "opcao": opcao,
             "subopcao": subopcao
         }), 500
+
