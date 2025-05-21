@@ -8,7 +8,7 @@ from src.routes.rotas import api_blueprint
 
 app = Flask(__name__)
 
-# Registrar o blueprint da API
+# Registrar os blueprints da API
 app.register_blueprint(api_blueprint)
 
 if __name__ == '__main__':
