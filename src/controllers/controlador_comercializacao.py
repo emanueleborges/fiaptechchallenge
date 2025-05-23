@@ -2,7 +2,7 @@
 Controlador responsável pelo processamento dos dados de comercialização vinícola
 """
 import pandas as pd
-from typing import Dict, List, Any
+from typing import Dict, Any, List
 
 from src.models.comercializacao import ModeloComercializacao
 from src.config.configuracao import Configuracao
@@ -13,85 +13,77 @@ class ControladorComercializacao:
     
     def formatarDados(self, df_dados: pd.DataFrame) -> Dict[str, Any]:
         """
-        Formata os dados do DataFrame para o formato desejado da API
-        
-        Args:
-            df_dados: DataFrame com os dados de comercialização
-            
-        Returns:
-            Dicionário formatado para ser convertido em JSON
+        Formata os dados do DataFrame para o formato desejado da API:
+        {
+          "Total": <int>,
+          "itens": [
+            {
+              "produto": <str>,
+              "quantidade": <int>,
+              "subitem": [
+                { "produto": <str>, "quantidade": <int> },
+                ...
+              ]
+            },
+            ...
+          ]
+        }
         """
-        # Estruturar os dados hierarquicamente
-        resultado = {}
-        total = 0
-        
-        # Extrair o total
-        linha_total = df_dados[df_dados['produto'] == 'Total']
-        if not linha_total.empty:
-            total = linha_total.iloc[0]['quantidade']
-            # Remover o Total do DataFrame para processamento
-            df_dados = df_dados[df_dados['produto'] != 'Total']
-        
-        # Primeiro, processar os produtos pai (exceto os ignorados)
-        produtos_pai = df_dados[(df_dados['ehPai']) & 
-                              (~df_dados['produto'].isin(Configuracao.PRODUTOS_IGNORADOS))]
-        
-        produtos_dict = {}
-        
-        # Processar os produtos pai primeiro
-        indice = 1
-        for _, linha in produtos_pai.iterrows():
-            nome_item = f"comercializacao {indice}"
-            objeto_produto = {
-                "produto": linha['produto'],
-                "quantidade": linha['quantidade'],
-                "destinos": []
-            }
-            resultado[nome_item] = objeto_produto
-            produtos_dict[linha['produto']] = objeto_produto
-            indice += 1
-        
-        # Processar os produtos filho
-        produtos_filho = df_dados[(~df_dados['ehPai']) & 
-                               (~df_dados['produto'].isin(Configuracao.PRODUTOS_IGNORADOS))]
-        
-        for _, linha in produtos_filho.iterrows():
-            if linha['categoriaPai'] in produtos_dict:
-                destino = {
-                    "produto": linha['produto'],
-                    "quantidade": linha['quantidade']
-                }
-                
-                # Adicionar o destino se estiver disponível
-                if 'destino' in linha and linha['destino']:
-                    destino["destino"] = linha['destino']
-                    
-                produtos_dict[linha['categoriaPai']]["destinos"].append(destino)
-        
-        # Adicionar o total ao resultado final
-        resultado["total"] = total
-        
+        # Cópia para não alterar o original
+        df = df_dados.copy()
+
+        # Extrair e remover o Total
+        linha_total = df[df['produto'] == 'Total']
+        total = int(linha_total.iloc[0]['quantidade']) if not linha_total.empty else 0
+        df = df[df['produto'] != 'Total']
+
+        # Pais e filhos (ignorando conforme Configuração)
+        pais = df[
+            (df['ehPai']) &
+            (~df['produto'].isin(Configuracao.PRODUTOS_IGNORADOS))
+        ]
+        filhos = df[
+            (~df['ehPai']) &
+            (~df['produto'].isin(Configuracao.PRODUTOS_IGNORADOS))
+        ]
+
+        itens: List[Dict[str, Any]] = []
+        for _, pai in pais.iterrows():
+            nome_pai = pai['produto']
+            quantidade_pai = pai['quantidade']
+
+            # Subitens desse pai
+            subitems: List[Dict[str, Any]] = []
+            df_filhos = filhos[filhos['categoriaPai'] == nome_pai]
+            for _, filho in df_filhos.iterrows():
+                subitems.append({
+                    "produto": filho['produto'],
+                    "quantidade": int(filho['quantidade'])
+                })
+
+            itens.append({
+                "produto": nome_pai,
+                "quantidade": int(quantidade_pai),
+                "subitem": subitems
+            })
+
+        resultado = {
+            "Total": total,
+            "itens": itens
+        }
+
         return self.modelo.converterTiposNumpy(resultado)
     
     def obterDadosHierarquicos(self, df_dados: pd.DataFrame) -> Dict[str, Any]:
         """
         Organiza os dados em uma estrutura hierárquica de produtos e destinos.
-        
-        Args:
-            df_dados: DataFrame com os dados de comercialização
-            
-        Returns:
-            Dicionário com estrutura hierárquica dos dados
         """
         df_formatado = self.modelo.converterParaDataFrame(df_dados.to_dict('records'))
         hierarquia = self.modelo.estruturarHierarquia(df_formatado)
         
-        # Adicionar o total
-        total = 0
         linha_total = df_dados[df_dados['produto'] == 'Total']
-        if not linha_total.empty:
-            total = int(linha_total.iloc[0]['quantidade'])
-            
+        total = int(linha_total.iloc[0]['quantidade']) if not linha_total.empty else 0
+        
         resultado = {
             "produtos": hierarquia,
             "totalGeral": total
