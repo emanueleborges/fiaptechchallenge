@@ -2,68 +2,53 @@
 FROM python:3.9-slim
 
 # Set environment variables
+# PYTHONDONTWRITEBYTECODE and PYTHONUNBUFFERED are good practices for containers
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1 \
-    PORT=5000 \
-    HOST=0.0.0.0 \
-    DEBUG=False \
-    EMBRAPA_BASE_URL=http://vitibrasil.cnpuv.embrapa.br/index.php \
-    API_EMBRAPA_DATA_URL=/embrapa_data?data={data}&opcao={opcao} \
-    API_HEALTH_URL=/health \
-    ANO_PADRAO=2023 \
-    OPCAO_PRODUCAO=opt_02 \
-    OPCAO_PROCESSAMENTO=opt_03 \
-    OPCAO_COMERCIALIZACAO=opt_04 \
-    OPCAO_IMPORTACAO=opt_05 \
-    OPCAO_EXPORTACAO=opt_06 \
-    SUBOPCAO_PROCESSAMENTO_PADRAO=subopt_03 \
-    SUBOPCAO_IMPORTACAO_PADRAO=subopt_03 \
-    SUBOPCAO_EXPORTACAO_PADRAO=subopt_03 \
-    PRODUTOS_IGNORADOS="Dados da Vitivinicultura,DOWNLOAD" \
-    PROCESSOS_IGNORADOS="Dados da Vitivinicultura,DOWNLOAD" \
-    PAISES_IGNORADOS="Dados da Vitivinicultura,DOWNLOAD,Não consta na tabela" \
-    FORMATOS_RESPOSTA="padrao,hierarquico" \
-    TIMEOUT=120 \
-    WORKERS=4 \
-    THREADS=2
+    PIP_DISABLE_PIP_VERSION_CHECK=1
 
-# Set working directory
+# WORKDIR for application
 WORKDIR /app
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc \
-    curl \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Install system dependencies (if any beyond basic python)
+# Example: RUN apt-get update && apt-get install -y --no-install-recommends some-package && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Create a non-root user
-RUN adduser --disabled-password --gecos "" appuser
+# Create a non-root user and group for security
+RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
 
-# Copy and install dependencies first (better caching)
+# Copy requirements first to leverage Docker cache
 COPY requirements.txt .
+
+# Install Python dependencies
+# Using --no-cache-dir to reduce image size
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy application code
-COPY --chown=appuser:appuser . .
+# Copy the rest of the application code
+COPY . .
 
-# Make run.sh executable
-RUN chmod +x run.sh
+# Change ownership of the app directory to the non-root user
+RUN chown -R appuser:appgroup /app
 
-# Change ownership to the non-root user
-RUN chown -R appuser:appuser /app
-
-# Switch to non-root user
+# Switch to the non-root user
 USER appuser
 
-# Expose port
-EXPOSE 5000
+# Expose the port the app runs on (ensure this matches your app's configuration)
+# This should be set by Render's PORT environment variable, but good to document
+# EXPOSE $PORT 
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD curl -f http://localhost:5000/health || exit 1
+# Health check (optional but recommended for Render)
+# Render uses this to determine if your service is healthy.
+# Adjust the CMD to match your application\'s health check endpoint.
+# HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \\
+#    CMD curl -f http://localhost:${PORT}/health || exit 1
+# Note: Render injects the PORT environment variable.
 
-# Run the application with Gunicorn in production
+# Command to run the application
+# Render will use the command specified in its service settings.
+# This CMD is a fallback or for local testing.
+# Ensure your Procfile or Render start command uses gunicorn or similar.
+# Example: CMD ["gunicorn", "app:create_app()", "--bind", "0.0.0.0:$PORT"]
+# For your project, it seems you use `python app.py` or `sh run.sh`
+# If run.sh starts gunicorn, that's fine.
 CMD ["sh", "run.sh"]
