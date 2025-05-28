@@ -1,13 +1,10 @@
-"""
-Modelo para representar dados de importação de vinhos e derivados.
-"""
+
 from typing import Dict, List, Optional, Union, Any
 import pandas as pd
 from dataclasses import dataclass
 
 @dataclass
 class ItemImportacao:
-    """Representa um item de importação de vinho ou derivado."""
     pais: str
     quantidade: int
     valor: float
@@ -16,18 +13,9 @@ class ItemImportacao:
 
 
 class ModeloImportacao:
-    """Classe que gerencia os dados de importação obtidos da Embrapa."""
     
     def converterParaDataFrame(self, dados: List[ItemImportacao]) -> pd.DataFrame:
-        """
-        Converte uma lista de ItemImportacao para DataFrame.
         
-        Args:
-            dados: Lista de objetos ItemImportacao
-            
-        Returns:
-            DataFrame pandas com os dados formatados
-        """
         df = pd.DataFrame([vars(item) for item in dados])
         
         # Renomeia as colunas para o formato esperado
@@ -43,15 +31,7 @@ class ModeloImportacao:
     
     @staticmethod
     def converterTiposNumpy(obj: Any) -> Any:
-        """
-        Converte tipos NumPy para tipos Python nativos.
-        
-        Args:
-            obj: Objeto que pode conter tipos NumPy
-            
-        Returns:
-            Objeto com tipos NumPy convertidos para tipos nativos Python
-        """
+       
         if isinstance(obj, dict):
             return {k: ModeloImportacao.converterTiposNumpy(v) for k, v in obj.items()}
         elif isinstance(obj, list):
@@ -62,15 +42,7 @@ class ModeloImportacao:
             return obj
     
     def estruturarHierarquia(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """
-        Estrutura os dados do DataFrame em uma hierarquia de países e valores.
         
-        Args:
-            df: DataFrame com os dados de importação
-            
-        Returns:
-            Dicionário estruturado hierarquicamente
-        """
         hierarquia = {}
         paises = df[df['País'] != 'Total']
         

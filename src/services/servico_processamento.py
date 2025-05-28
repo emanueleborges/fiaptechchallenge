@@ -1,6 +1,3 @@
-"""
-Serviço responsável por fazer o web scraping dos dados de processamento da Embrapa
-"""
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
@@ -15,96 +12,74 @@ class ServicoProcessamento:
         self.urlBase = Configuracao.URL_BASE_EMBRAPA
 
     def coletarDadosProcessamento(self, ano: int, opcao: str = 'opt_03', subopcao: str = None) -> pd.DataFrame:
-        """
-        Faz o web scraping dos dados de processamento da Embrapa para o ano específicado
+        url = f"{self.urlBase}?ano={ano}"
         
-        Args:
-            ano (int): O ano para o qual se deseja obter os dados
-            opcao (str): Opção do relatório (ex: 'opt_03')
-            subopcao (str): Subopção do relatório (ex: 'subopt_01')
+        if subopcao is None:
+            subopcao = Configuracao.SUBOPCAO_PROCESSAMENTO_PADRAO
             
-        Returns:
-            pd.DataFrame: DataFrame com os dados de processamento de vinho
-        """
-        url = f"{self.urlBase}?ano={ano}&opcao={opcao}"
-        if subopcao:
-            url += f"&subopcao={subopcao}"
+        url += f"&opcao={opcao}&subopcao={subopcao}"
         resposta = requests.get(url)
         soup = BeautifulSoup(resposta.content, 'html.parser')
         dados = []
         valorTotal = 0
         
-        # Variável para armazenar categoria pai atual
         categoriaPaiAtual = None
         
-        # Encontrar a tabela de dados
         tabelas = soup.find_all('table', class_='tb_base tb_dados')
         
         for tabela in tabelas:
-            # Processar as linhas da tabela
             linhas = tabela.find_all('tr')
             
             for linha in linhas:
                 colunas = linha.find_all('td')
-                if len(colunas) >= 2:  # Processamento pode ter mais colunas
-                    # Extrair texto dos campos
+                if len(colunas) >= 2:
                     processo = colunas[0].text.strip()
                     texto_volume = colunas[1].text.strip()
                     
-                    # Tentar extrair o método, se existir
-                    metodo = None
+                    metodo = ''
                     if len(colunas) > 2:
-                        metodo = colunas[2].text.strip() if colunas[2].text.strip() else None
+                        metodo = colunas[2].text.strip()
                     
-                    # Identificar se é um item pai (tb_item) ou filho (tb_subitem)
                     ehPai = 'tb_item' in colunas[0].get('class', [])
-                      # Ignorar colunas de cabeçalho e produtos específicos ignorados
-                    if processo in ['Processo', 'Total'] or processo in Configuracao.PROCESSOS_IGNORADOS:
-                        if processo == 'Total':
+                    
+                    if processo != 'Processo' and processo != 'Total' and processo not in Configuracao.PROCESSOS_IGNORADOS:
+                        if texto_volume == '-':
+                            volume = 0
+                        else:
+                            volume_texto = texto_volume.replace('.', '').replace(',', '.')
                             try:
-                                valorTotal = int(re.sub(r'[^\d]', '', texto_volume))
+                                volume = int(float(volume_texto))
                             except ValueError:
-                                valorTotal = 0
-                        continue
-                    
-                    # Converter quantidade para inteiro
-                    try:
-                        volume = int(re.sub(r'[^\d]', '', texto_volume)) if texto_volume.strip() != '-' else 0
-                    except ValueError:
-                        volume = 0
-                    
-                    # Se for um item pai, atualizar a categoria pai atual
-                    if ehPai:
-                        categoriaPaiAtual = processo
-                        item = ItemProcessamento(
-                            processo=processo,
-                            volume=volume,
-                            metodo=metodo,
-                            categoriaPai=None,
-                            ehPai=True
-                        )
-                    else:
-                        # É um item filho
-                        item = ItemProcessamento(
-                            processo=processo,
-                            volume=volume,
-                            metodo=metodo,
-                            categoriaPai=categoriaPaiAtual,
-                            ehPai=False
-                        )
-                    
-                    dados.append(item)
+                                volume = 0
+                        
+                        if ehPai:
+                            categoriaPaiAtual = processo
+                            idPai = None
+                        else:
+                            idPai = categoriaPaiAtual
+                            
+                        dados.append({
+                            'processo': processo,
+                            'volume': volume,
+                            'metodo': metodo,
+                            'categoriaPai': idPai,
+                            'ehPai': ehPai
+                        })
+                    elif processo == 'Total':
+                        texto_total = texto_volume.replace('.', '').replace(',', '.')
+                        try:
+                            valorTotal = int(float(texto_total))
+                        except ValueError:
+                            valorTotal = 0
         
-        # Adicionar o valor total como um item especial
-        dados.append(ItemProcessamento(
-            processo='Total',
-            volume=valorTotal,
-            metodo=None,
-            categoriaPai=None,
-            ehPai=False
-        ))
+        dados.append({
+            'processo': 'Total',
+            'volume': valorTotal,
+            'metodo': '',
+            'categoriaPai': None,
+            'ehPai': True
+        })
         
-        # Converter para DataFrame
-        df = pd.DataFrame([vars(item) for item in dados])
+        df = pd.DataFrame(dados)
         
         return df

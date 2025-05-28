@@ -1,6 +1,3 @@
-"""
-Controlador responsável pelo processamento dos dados de comercialização vinícola
-"""
 import pandas as pd
 from typing import Dict, Any, List
 
@@ -12,32 +9,12 @@ class ControladorComercializacao:
         self.modelo = ModeloComercializacao()
     
     def formatarDados(self, df_dados: pd.DataFrame) -> Dict[str, Any]:
-        """
-        Formata os dados do DataFrame para o formato desejado da API:
-        {
-          "Total": <int>,
-          "itens": [
-            {
-              "produto": <str>,
-              "quantidade": <int>,
-              "subitem": [
-                { "produto": <str>, "quantidade": <int> },
-                ...
-              ]
-            },
-            ...
-          ]
-        }
-        """
-        # Cópia para não alterar o original
         df = df_dados.copy()
 
-        # Extrair e remover o Total
         linha_total = df[df['produto'] == 'Total']
         total = int(linha_total.iloc[0]['quantidade']) if not linha_total.empty else 0
         df = df[df['produto'] != 'Total']
 
-        # Pais e filhos (ignorando conforme Configuração)
         pais = df[
             (df['ehPai']) &
             (~df['produto'].isin(Configuracao.PRODUTOS_IGNORADOS))
@@ -52,7 +29,6 @@ class ControladorComercializacao:
             nome_pai = pai['produto']
             quantidade_pai = pai['quantidade']
 
-            # Subitens desse pai
             subitems: List[Dict[str, Any]] = []
             df_filhos = filhos[filhos['categoriaPai'] == nome_pai]
             for _, filho in df_filhos.iterrows():
@@ -75,9 +51,6 @@ class ControladorComercializacao:
         return self.modelo.converterTiposNumpy(resultado)
     
     def obterDadosHierarquicos(self, df_dados: pd.DataFrame) -> Dict[str, Any]:
-        """
-        Organiza os dados em uma estrutura hierárquica de produtos e destinos.
-        """
         df_formatado = self.modelo.converterParaDataFrame(df_dados.to_dict('records'))
         hierarquia = self.modelo.estruturarHierarquia(df_formatado)
         
