@@ -26,9 +26,18 @@ def health_check():
 
 @api_blueprint.route('/embrapa_data', methods=['GET'])
 def obter_dados_embrapa():
-    ano = request.args.get('ano', default=Configuracao.ANO_PADRAO, type=int)
-    formato = request.args.get('formato', default='padrao', type=str).lower()
+    data = request.args.get('data', type=int)
+    ano = request.args.get('ano', type=int) 
+    
+    if data is not None:
+        ano_final = data
+    elif ano is not None:
+        ano_final = ano
+    else:
+        ano_final = Configuracao.ANO_PADRAO
+    
     opcao = request.args.get('opcao', default=Configuracao.OPCAO_PRODUCAO, type=str)
+    formato = request.args.get('formato', default='padrao', type=str).lower()
     
     subopcao_padrao = None
     if opcao == Configuracao.OPCAO_PROCESSAMENTO:
