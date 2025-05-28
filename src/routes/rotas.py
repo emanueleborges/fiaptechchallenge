@@ -21,7 +21,7 @@ api_blueprint = Blueprint('api', __name__)
 def health_check():
     return jsonify({
         "status": "online",
-        "message": "API de dados da Embrapa está funcionando corretamente"
+        "message": "API de dados da Embrapa está funcionando corretamente!"
     })
 
 @api_blueprint.route('/embrapa_data', methods=['GET'])
