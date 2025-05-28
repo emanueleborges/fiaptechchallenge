@@ -63,3 +63,7 @@ jobs:
           builder: ${{ steps.buildx.outputs.name }} # Especifica o builder
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Trigger Render Deploy
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main' # Só executa em push para main
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
