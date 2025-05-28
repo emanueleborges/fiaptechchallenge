@@ -23,7 +23,7 @@ class Configuracao:
     PRODUTOS_IGNORADOS = os.getenv('PRODUTOS_IGNORADOS', 'Dados da Vitivinicultura,DOWNLOAD').split(',')
     PROCESSOS_IGNORADOS = os.getenv('PROCESSOS_IGNORADOS', 'Dados da Vitivinicultura,DOWNLOAD').split(',')
     PAISES_IGNORADOS = os.getenv('PAISES_IGNORADOS', 'Dados da Vitivinicultura,DOWNLOAD,Não consta na tabela').split(',')
-    
+
     FORMATOS_RESPOSTA = os.getenv('FORMATOS_RESPOSTA', 'padrao,hierarquico').split(',')
     
     TIMEOUT = int(os.getenv('TIMEOUT', 120))
