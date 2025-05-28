@@ -11,7 +11,7 @@ def crawl_embrapa(year, hierarchical=True):
     
     try:
         response = requests.get(url, timeout=10)
-        response.raise_for_status()  # Verifica se a resposta HTTP é válida
+        response.raise_for_status()
     except requests.RequestException as e:
         logger.error(f"Failed to fetch data from Embrapa: {e}")
         raise
@@ -31,22 +31,20 @@ def crawl_embrapa(year, hierarchical=True):
             cols = [ele.text.strip() for ele in cols]
             if len(cols) == 2 and cols[0] != 'Produto' and cols[0] != 'Total':
                 product = cols[0]
-                quantity = cols[1].replace('.', '').replace('-', '0')  # Remove dots and replace '-' with 0
+                quantity = cols[1].replace('.', '').replace('-', '0')
                 try:
                     quantity = int(quantity)
                 except ValueError:
                     logger.warning(f"Could not convert quantity '{cols[1]}' to int for product '{product}'. Setting to 0.")
-                    quantity = 0  # if conversion fails, set to 0
+                    quantity = 0
                 data.append([product, quantity])
     
     df = pd.DataFrame(data, columns=['Produto', 'Quantidade (L.)'])
     logger.info(f"Retrieved {len(df)} products for year {year}")
     
-    # Se não for solicitada a estrutura hierárquica, retorna o DataFrame original
     if not hierarchical:
         return df
     
-    # Processamento para criar a estrutura hierárquica
     return create_hierarchical_structure(df, year)
 
 def create_hierarchical_structure(df, year):
@@ -90,20 +88,17 @@ def fix_hierarchical_structure(data):
    
     for i in range(len(data["data"])):
         if not data["data"][i]["filhos"] and data["data"][i]["quantidade"] > 0:
-            continue  # Se não tem filhos mas tem quantidade, é um produto independente
+            continue
             
         if data["data"][i]["quantidade"] == 0 and not data["data"][i]["filhos"]:
            
             for j in range(len(data["data"])):
                 if i != j and data["data"][i]["nome"] in data["data"][j]["nome"]:
-                    # Move como filho
                     data["data"][j]["filhos"].append({
                         "nome": data["data"][i]["nome"],
                         "quantidade": data["data"][i]["quantidade"]
                     })
-                    # Marca para remoção
                     data["data"][i] = None
                     break
     
-    # Remove produtos marcados como None
     data["data"] = [item for item in data["data"] if item is not None]

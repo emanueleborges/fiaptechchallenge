@@ -1,5 +1,6 @@
 from flask import Blueprint, request, Response, jsonify
 import json
+import traceback
 
 from src.services.servico_embrapa import ServicoEmbrapa
 from src.services.servico_processamento import ServicoProcessamento
@@ -101,9 +102,23 @@ def obter_dados_embrapa():
         return Response(json_output, mimetype=MIME_TYPE_JSON)
         
     except Exception as e:
+        error_traceback = traceback.format_exc()
+        print(f"ERRO: {str(e)}")
+        print(f"TRACEBACK: {error_traceback}")
+        
+        # Obter informações detalhadas sobre o dataframe, se disponível
+        df_info = ""
+        if 'df_dados' in locals() and df_dados is not None:
+            try:
+                df_info = f"Colunas: {df_dados.columns.tolist()}, Forma: {df_dados.shape}"
+            except:
+                df_info = "Não foi possível obter informações do DataFrame"
+        
         return jsonify({
             "erro": f"Erro ao processar dados: {str(e)}",
-            "ano": ano,
+            "ano": ano_final,
             "opcao": opcao,
-            "subopcao": subopcao
+            "subopcao": subopcao,
+            "df_info": df_info,
+            "detalhes": error_traceback
         }), 500

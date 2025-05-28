@@ -19,12 +19,13 @@ class Configuracao:
     SUBOPCAO_PROCESSAMENTO_PADRAO = os.getenv('SUBOPCAO_PROCESSAMENTO_PADRAO', 'subopt_03')
     SUBOPCAO_IMPORTACAO_PADRAO = os.getenv('SUBOPCAO_IMPORTACAO_PADRAO', 'subopt_03')
     SUBOPCAO_EXPORTACAO_PADRAO = os.getenv('SUBOPCAO_EXPORTACAO_PADRAO', 'subopt_03')
+    
     PRODUTOS_IGNORADOS = os.getenv('PRODUTOS_IGNORADOS', 'Dados da Vitivinicultura,DOWNLOAD').split(',')
     PROCESSOS_IGNORADOS = os.getenv('PROCESSOS_IGNORADOS', 'Dados da Vitivinicultura,DOWNLOAD').split(',')
     PAISES_IGNORADOS = os.getenv('PAISES_IGNORADOS', 'Dados da Vitivinicultura,DOWNLOAD,Não consta na tabela').split(',')
+
     FORMATOS_RESPOSTA = os.getenv('FORMATOS_RESPOSTA', 'padrao,hierarquico').split(',')
     
-    # Configurações adicionais
     TIMEOUT = int(os.getenv('TIMEOUT', 120))
     WORKERS = int(os.getenv('WORKERS', 4))
     THREADS = int(os.getenv('THREADS', 2))
