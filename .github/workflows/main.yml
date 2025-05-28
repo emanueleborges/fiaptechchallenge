@@ -5,7 +5,7 @@ on:
     branches:
       - main # Ou sua branch padrão
     tags:
-      - \'v*.*.*\' # Dispara em tags como v1.0.0
+      - 'v*.*.*' # Dispara em tags como v1.0.0
   pull_request:
     branches:
       - main # Ou sua branch padrão
