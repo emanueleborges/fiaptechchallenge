@@ -1,13 +1,10 @@
-"""
-Modelo para representar dados de comercialização de vinhos e derivados.
-"""
+
 from typing import Dict, List, Optional, Union, Any
 import pandas as pd
 from dataclasses import dataclass
 
 @dataclass
 class ItemComercializacao:
-    """Representa um item de comercialização de vinho ou derivado."""
     produto: str
     quantidade: int
     destino: Optional[str] = None
@@ -16,18 +13,9 @@ class ItemComercializacao:
 
 
 class ModeloComercializacao:
-    """Classe que gerencia os dados de comercialização obtidos da Embrapa."""
     
     def converterParaDataFrame(self, dados: List[ItemComercializacao]) -> pd.DataFrame:
-        """
-        Converte uma lista de ItemComercializacao para DataFrame.
-        
-        Args:
-            dados: Lista de objetos ItemComercializacao
-            
-        Returns:
-            DataFrame pandas com os dados formatados
-        """
+       
         df = pd.DataFrame([vars(item) for item in dados])
         
         # Renomeia as colunas para o formato esperado
@@ -43,15 +31,7 @@ class ModeloComercializacao:
     
     @staticmethod
     def converterTiposNumpy(obj: Any) -> Any:
-        """
-        Converte tipos NumPy para tipos Python nativos.
-        
-        Args:
-            obj: Objeto que pode conter tipos NumPy
-            
-        Returns:
-            Objeto com tipos NumPy convertidos para tipos nativos Python
-        """
+       
         if isinstance(obj, dict):
             return {k: ModeloComercializacao.converterTiposNumpy(v) for k, v in obj.items()}
         elif isinstance(obj, list):
@@ -62,15 +42,7 @@ class ModeloComercializacao:
             return obj
     
     def estruturarHierarquia(self, df: pd.DataFrame) -> Dict[str, Any]:
-        """
-        Estrutura os dados do DataFrame em uma hierarquia de produtos e destinos.
         
-        Args:
-            df: DataFrame com os dados de comercialização
-            
-        Returns:
-            Dicionário estruturado hierarquicamente
-        """
         hierarquia = {}
         produtos_pais = df[df['is_parent'] == True]
         
