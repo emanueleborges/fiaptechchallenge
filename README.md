@@ -75,6 +75,23 @@ GET /embrapa_data
 
 ---
 
+## 🌊 Fluxo da Aplicação
+
+O fluxo de funcionamento da aplicação é o seguinte:
+
+1.  **Coleta de Dados:** Os dados são obtidos em tempo real do site da Embrapa utilizando técnicas de web scraping.
+2.  **Disponibilização dos Dados:** A API retorna os dados coletados em formato JSON, prontos para serem consumidos por outras aplicações ou ferramentas de visualização.
+3.  **Versionamento e CI/CD:** 
+    *   O código-fonte é versionado no GitHub.
+    *   Ao realizar um push para a branch `main` ou ao criar uma tag, uma pipeline do GitHub Actions é acionada.
+4.  **Pipeline do GitHub Actions e Implantação:**
+    *   A pipeline constrói a imagem Docker da aplicação.
+    *   A imagem é enviada para o GitHub Container Registry (GHCR).
+    *   Um deploy hook é acionado para atualizar a aplicação no Render.
+5.  **Visualização/Acesso:** A API pode ser acessada e seus dados visualizados através do seguinte endereço: [https://fiaptechchallenge.onrender.com/](https://fiaptechchallenge.onrender.com/)
+
+---
+
 ## 💡 Exemplos práticos
 
 ### Consultar produção de 2022
