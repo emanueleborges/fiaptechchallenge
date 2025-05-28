@@ -22,8 +22,9 @@ build_image:
     - docker push $IMAGE_TAG_COMMIT
     - docker push $IMAGE_TAG_LATEST
   rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH # Only run for the default branch
-    - if: $CI_COMMIT_TAG # Also run for tags
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "main" # Executa para MRs direcionados à 'main'
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH      # Executa em pushes para a branch padrão
+    - if: $CI_COMMIT_TAG                               # Executa para tags
 
 # Optional: If you want to push only tagged versions to a "release" tag
 # push_tagged_release:
