@@ -18,7 +18,6 @@ class ModeloExportacao:
         
         df = pd.DataFrame([vars(item) for item in dados])
         
-        # Renomeia as colunas para o formato esperado
         df = df.rename(columns={
             'pais': 'País', 
             'quantidade': 'Quantidade (Kg)', 
