@@ -68,11 +68,26 @@ GET /embrapa_data
 - `ano` - Ano dos dados (ex: 2022)
 - `opcao` - Tipo de dados:
   - `opt_02` = Produção
-  - `opt_03` = Processamento  
+  - `opt_03` = Processamento
+    - `subopcao`
+      - `subopt_01`
+      - `subopt_02`
+      - `subopt_03`
+      - `subopt_04`
   - `opt_04` = Comercialização
   - `opt_05` = Importação
+    - `subopcao`
+      - `subopt_01`
+      - `subopt_02`
+      - `subopt_03`
+      - `subopt_04`
+      - `subopt_05`
   - `opt_06` = Exportação
-
+    - `subopcao`
+      - `subopt_01`
+      - `subopt_02`
+      - `subopt_03`
+      - `subopt_04`
 ---
 
 ## 💡 Exemplos práticos
@@ -85,16 +100,93 @@ http://localhost:5000/embrapa_data?ano=2022&opcao=opt_02
 **Resposta exemplo (sucesso):**
 ```json
 {
-  "ano": 2022,
-  "opcao": "opt_02", 
-  "dados": [
-    {
-      "produto": "VINHO DE MESA",
-      "quantidade": "123456789"
-    }
-  ]
-}
+"Total": 457792870,
+"itens": [
+  {
+    "produto": "VINHO DE MESA",
+    "quantidade": 169762429,
+    "subitem": [
+        {
+          "produto": "Tinto",
+          "quantidade": 139320884
+        },
+        {
+          "produto": "Branco",
+          "quantidade": 27910299
+        },
+        {
+          "produto": "Rosado",
+          "quantidade": 2531246
+        }
+        ]
+        },
+        {
+          "produto": "VINHO FINO DE MESA (VINIFERA)",
+          "quantidade": 46268556,
+          "subitem": [
+        {
+          "produto": "Tinto",
+          "quantidade": 23615783
+        },
+        {
+          "produto": "Branco",
+          "quantidade": 20693437
+        },
+        {
+          "produto": "Rosado",
+          "quantidade": 1959336
+        }
+        ]
+        },
 ```
+### Consultar Processamento de 2023
+```
+http://localhost:5000/embrapa_data?ano=2023&opcao=opt_03&subopcao=subopt_02
+```
+
+**Resposta exemplo (sucesso):**
+```json
+{
+"Total": 565243922,
+"itens": [
+    {
+    "produto": "TINTAS",
+    "quantidade": 502666358,
+    "subitem": [
+        {
+          "produto": "Bacarina",
+          "quantidade": 0
+        },
+        {
+          "produto": "Bailey",
+          "quantidade": 587066
+        },
+        {
+        "produto": "Bordo",
+        "quantidade": 154310837
+        },
+        {
+          "produto": "Bourdin (S)",
+          "quantidade": 0
+        },
+        {
+          "produto": "BRS Carmen",
+          "quantidade": 22242535
+        },
+        {
+          "produto": "BRS Cora",
+          "quantidade": 19508450
+        },
+        {
+          "produto": "BRS Magna",
+          "quantidade": 13919693
+        },
+        {
+          "produto": "BRS Margot",
+          "quantidade": 36842
+        },
+```
+
 ---
 
 ## 🏛️ Arquitetura e Fluxo de Implantação
