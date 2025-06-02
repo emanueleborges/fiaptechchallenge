@@ -216,3 +216,7 @@ Esta API pode alimentar modelos de Machine Learning para gerar insights no setor
 3.  **Disponibilização de Insights:** Dashboards interativos (Power BI, Tableau, Dash/Streamlit) e alertas para apresentar resultados e previsões.
 
 **Importância da API:** Atua como a fonte primária e confiável de dados da Embrapa, viabilizando a automação da coleta e garantindo que as análises sejam baseadas em informações consistentes e atualizadas.
+
+
+![Print da aplicação](./assets/fiap.png)
+
