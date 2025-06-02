@@ -201,6 +201,8 @@ A solução compreende as seguintes etapas principais:
     *   **Principais Etapas:** Checkout do código, setup do Docker Buildx, login no GHCR, extração de metadados, build e push da imagem Docker para o GHCR (com cache), e acionamento de deploy hook no Render (para pushes na `main` via secret `RENDER_DEPLOY_HOOK_URL`).
 5.  **Acesso à API:** Após o deploy, a API fica acessível em [https://fiaptechchallenge.onrender.com/](https://fiaptechchallenge.onrender.com/).
 
+![Print da aplicação](./assets/fiap.png)
+
 ---
 
 ## 🍇 Cenário de Uso: Análise Preditiva para o Setor Vitivinícola
@@ -218,5 +220,4 @@ Esta API pode alimentar modelos de Machine Learning para gerar insights no setor
 **Importância da API:** Atua como a fonte primária e confiável de dados da Embrapa, viabilizando a automação da coleta e garantindo que as análises sejam baseadas em informações consistentes e atualizadas.
 
 
-![Print da aplicação](./assets/fiap.png)
 
